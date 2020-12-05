@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
         with open(os.getenv('PICKLE_FILE'), 'wb') as f:
             in_dict = {'path': path}
-            pickle.dump(in_dict, f)
+            pickle.dump(in_dict, f,protocol=pickle.HIGHEST_PROTOCOL)
 
         #### END OF YOUR CODE ###
         end = time.clock()
