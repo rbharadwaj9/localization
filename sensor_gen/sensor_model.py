@@ -15,20 +15,26 @@ class sensor_gen:
         if 'filename' not in kwargs:
             print('sensor_gen error: Require groundtruth to generate\r\n')
         else:
-            self.groundtruth = self.readfromfile_pickle(kwargs['filename'])
+            self.groundtruth = self.readfromfile_pickle(kwargs['filename'],'path')
             print "read successful, ground truth shape:",self.groundtruth.shape
             self.N = len(self.groundtruth)
         self.gen()
 
     # read groundtruth by pickle, and assume only first 2 columns of data are are observable(x,y)
-    def readfromfile_pickle(self,filename):
+    def readfromfile_pickle(self,filename,src_objname):
         with open(filename, "rb") as f:
-            groundtruth = pickle.load(f)
-        return np.matrix(groundtruth)[:,0:2]
+            self.source_dict = pickle.load(f)
+        return np.matrix(self.source_dict[src_objname])[:,0:2]
 
     # define sensor noise
-    def noise_model(self,shape):
-        return np.random.rand(shape[0],shape[1])-0.5
+    def noise_model(self,shape,outlier_rate = 0.1, outlier_range = 2):
+        val = np.random.rand(shape[0],shape[1])-0.5 # distribution
+        
+        # Outlier
+        if np.random.rand(1) < outlier_rate:
+            val = val + (np.random.rand(shape[0],shape[1])*2-1)*outlier_range
+
+        return val
     
     # return ideal sensor data
     def gen_ideal(self):
@@ -48,9 +54,11 @@ class sensor_gen:
         self.sensor_data = np.array(sensor_data)
         return self.sensor_data
     
-    def save_data(self,filename):
+    def save_data(self,filename,obj_name):
+        obj_save = self.source_dict
+        obj_save[obj_name] = self.sensor_data
         with open(filename,'wb') as f:
-            pickle.dump(self.sensor_data,f)
+            pickle.dump(self.sensor_data,f,protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == "__main__":
@@ -64,10 +72,10 @@ if __name__ == "__main__":
 
     print s.sensor_data[0:s.N,0].T.shape
 
-    plt.scatter(s.sensor_data[0:-1,0].T,s.sensor_data[0:-1,1].T,label='noisy')
+    plt.scatter(s.sensor_data[:,0].T,s.sensor_data[:,1].T,label='noisy')
     s_ideal = s.gen_ideal()
     plt.scatter(s_ideal[:,0],s_ideal[:,1],label='ideal')
     plt.legend()
     plt.show()
     raw_input('press enter')
-    s.save_data('sensor_data.pickle')
+    s.save_data('sensor_data.pickle','sensor_data')
