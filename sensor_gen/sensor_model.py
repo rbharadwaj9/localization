@@ -15,7 +15,7 @@ class sensor_gen:
         if 'filename' not in kwargs:
             print('sensor_gen error: Require groundtruth to generate\r\n')
         else:
-            self.groundtruth = self.readfromfile_pickle(kwargs['filename'],'path')
+            self.groundtruth = self.readfromfile_pickle(kwargs['filename'],'groundtruth')
             print "read successful, ground truth shape:",self.groundtruth.shape
             self.N = len(self.groundtruth)
         self.gen()
@@ -27,13 +27,15 @@ class sensor_gen:
         return np.matrix(self.source_dict[src_objname])[:,0:2]
 
     # define sensor noise
-    def noise_model(self,shape,outlier_rate = 0.1, outlier_range = 2):
-        val = np.random.rand(shape[0],shape[1])-0.5 # distribution
-        
+    def noise_model(self,outlier_rate = 0.3, outlier_range = 2):
+        val = np.random.multivariate_normal([0,0],[[ 5e-3,-6e-5 ],[-6e-5,5e-3]]) # distribution
+        val = np.reshape(val,(2,1))
         # Outlier
         if np.random.rand(1) < outlier_rate:
-            val = val + (np.random.rand(shape[0],shape[1])*2-1)*outlier_range
-
+            theta = np.random.uniform(0,np.pi*2)
+            # print theta
+            # print [[np.sin(theta)],[np.cos(theta)]]
+            val = val + 1*np.matrix([[np.sin(theta)],[np.cos(theta)]])
         return val
     
     # return ideal sensor data
@@ -49,7 +51,7 @@ class sensor_gen:
     def gen(self):
         sensor_data = []
         for x in self.groundtruth:
-            sensor_data.append( self.C*x.T + self.noise_model((2,1)) )
+            sensor_data.append( self.C*x.T + self.noise_model() )
         sensor_data = np.squeeze(sensor_data)
         self.sensor_data = np.array(sensor_data)
         return self.sensor_data
@@ -58,7 +60,7 @@ class sensor_gen:
         obj_save = self.source_dict
         obj_save[obj_name] = self.sensor_data
         with open(filename,'wb') as f:
-            pickle.dump(self.sensor_data,f,protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(obj_save,f,protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == "__main__":
@@ -68,14 +70,24 @@ if __name__ == "__main__":
     
     # plot difference between ideal and noisy sensor data
     plt.ion()
-    plot_axes = plt.subplot(111)
+    ax0 = plt.subplot(221)
+    ax1 = plt.subplot(222)
+    ax2 = plt.subplot(223)
+    ax3 = plt.subplot(224)
+    
+    sample = np.zeros((2,10000))
+    for i in range(10000):
+        sample[:,i] = np.squeeze(s.noise_model())
+    ax0.scatter(sample[0,:],sample[1,:],alpha = 0.3)
+    ax2.hist(sample[0,:])
+    ax3.hist(sample[1,:])
 
     print s.sensor_data[0:s.N,0].T.shape
 
-    plt.scatter(s.sensor_data[:,0].T,s.sensor_data[:,1].T,label='noisy')
+    ax1.scatter(s.sensor_data[:,0].T,s.sensor_data[:,1].T,c='b',label='noisy')
     s_ideal = s.gen_ideal()
-    plt.scatter(s_ideal[:,0],s_ideal[:,1],label='ideal')
-    plt.legend()
-    plt.show()
-    raw_input('press enter')
-    s.save_data('sensor_data.pickle','sensor_data')
+    ax1.scatter(s_ideal[:,0],s_ideal[:,1],c='k',label='ideal')
+    ax1.legend()
+    input_str = raw_input('save? y/n ')
+    if input_str == 'y':
+        s.save_data('astar_path.pickle','sensor_data')
