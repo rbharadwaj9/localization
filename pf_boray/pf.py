@@ -24,34 +24,33 @@ def ParticleFilter(x,w,motion,sense,u,z,ax_before=None,ax_after=None):
         xt = motion.getOutput(u,x0)
         P_z_given_x = sense.p(z,xt)
 
-        weight = w[i] * P_z_given_x
+        weight = P_z_given_x * w[i]
         S[i,:] = np.concatenate((xt.T,np.matrix(weight)),axis=1)
     S[:,2] = S[:,2]/np.sum(S[:,2])
     
 
     C = np.matrix("1.05 0.01; 0.01 0.9")
     x_sensor = np.linalg.inv(C)*z  
-    print "---------"
-    print 'x_sensor'
-    print x_sensor
-    print sense.p(z,x_sensor)
-    print 'x_max'
-    print S[np.argmax(S[:,2]),:]
-    print np.max(S[:,2])
-    print "weight"
-    print np.sum(S[:,2])
-    print np.average(S[:,2])
+    # print "---------"
+    # print 'x_sensor'
+    # print x_sensor
+    # print sense.p(z,x_sensor)
+    # print 'x_max'
+    # print S[np.argmax(S[:,2]),:]
+    # print np.max(S[:,2])
+    # print "weight"
+    # print np.sum(S[:,2])
+    # print np.average(S[:,2])
 
     # Plot weights of particles
-    # try:
-    # ax.plot_trisurf(list(S[:,0]),list(S[:,1]),list(S[:,2]))
-    # except:
-    #     pass
-    ax_before.scatter(list(S[:,0]),list(S[:,1]),list(S[:,2]))
-    ax_before.plot([x_sensor[0,0],x_sensor[0,0]],[x_sensor[1,0],x_sensor[1,0]],[0,np.max(S[:,2])],c='r')
-    ax_before.set_xlabel('x')
-    ax_before.set_ylabel('y')
-    ax_before.set_zlabel('weight')
+    try:
+        ax_before.scatter(list(S[:,0]),list(S[:,1]),list(S[:,2]))
+        ax_before.plot([x_sensor[0,0],x_sensor[0,0]],[x_sensor[1,0],x_sensor[1,0]],[0,np.max(S[:,2])],c='r')
+        ax_before.set_xlabel('x')
+        ax_before.set_ylabel('y')
+        ax_before.set_zlabel('weight')
+    except:
+        pass
 
     # Re-sampling
     # low-variance resampling
@@ -68,15 +67,17 @@ def ParticleFilter(x,w,motion,sense,u,z,ax_before=None,ax_after=None):
                 break
     Wt = Wt/np.sum(Wt)
     
-    print "n"
-    print n
-    print "Weight average"
-    print np.average(Wt)
-
-    ax_after.scatter(list(Xt[:,0]),list(Xt[:,1]),list(Wt))
-    ax_after.set_xlabel('x')
-    ax_after.set_ylabel('y')
-    ax_after.set_zlabel('weight')
+    # print "n"
+    # print n
+    # print "Weight average"
+    # print np.average(Wt)
+    try:
+        ax_after.scatter(list(Xt[:,0]),list(Xt[:,1]),list(Wt))
+        ax_after.set_xlabel('x')
+        ax_after.set_ylabel('y')
+        ax_after.set_zlabel('weight')
+    except:
+        pass
 
     # determine max likelihood
     # weighted average
@@ -85,7 +86,10 @@ def ParticleFilter(x,w,motion,sense,u,z,ax_before=None,ax_after=None):
         sum = sum + Xt[i,:]*Wt[i]
     x_max = sum/np.sum(Wt)
     # x_max = np.average(Xt,axis = 0)#Xt[np.argmax(Wt),:]
-    ax_after.plot([x_max[0],x_max[0]],[x_max[1],x_max[1]],[0,np.max(S[:,2])],c='r')
+    try:
+        ax_after.plot([x_max[0],x_max[0]],[x_max[1],x_max[1]],[0,np.max(S[:,2])],c='r')
+    except:
+        pass
 
     return Xt,Wt, x_max
 
@@ -117,11 +121,11 @@ class sensing:
 
 def main():
 
-    x_range = [-0.5, 0.5]
-    y_range = [-0.5, 0.5]
+    x_range = [-3, 3]
+    y_range = [-3, 3]
 
     # Initiailize
-    N0 = 100
+    N0 = 20000
     X = np.zeros((N0,2))
     X[:,0] = np.random.uniform(x_range[0],x_range[1],N0)
     X[:,1] = np.random.uniform(y_range[0],y_range[1],N0)
@@ -134,10 +138,10 @@ def main():
     
     #Ready to plot
     ax = []
-    ax.append(plt.subplot(321))
-    ax.append(plt.subplot(322))
-    ax.append(plt.subplot(312, projection='3d'))
-    ax.append(plt.subplot(313, projection='3d'))
+    ax.append(plt.subplot(121))
+    ax.append(plt.subplot(122))
+    # ax.append(plt.subplot(312, projection='3d'))
+    # ax.append(plt.subplot(313, projection='3d'))
     
     motion_cov, sensor_cov = fitting()
 
@@ -157,17 +161,21 @@ def main():
 
         ax[0].cla()
         ax[1].cla()
-        ax[2].cla()
-        ax[3].cla()
+        # ax[2].cla()
+        # ax[3].cla()
 
         z = np.matrix(noisy_measurement[:,i]).transpose() #current x
         u = np.matrix(actions[:,i]).transpose()           #current u
         #run Particle Filter
-        X,W,xt = ParticleFilter(X,W,m,s,u,z,ax[2],ax[3])
+        X,W,xt = ParticleFilter(X,W,m,s,u,z) #,ax[2],ax[3]
         
         estimate[i,:] = xt
         
+
+
         x_true = [ground_truth_states[0,i],ground_truth_states[1,i]]
+        title = "Step " + str(i)
+        plt.title(title)
         ax[0].scatter(list(X[:,0]),list(X[:,1]),c='b',label='particles')
         ax[0].scatter(float(xt[0]),float(xt[1]),c='r',label='max likelihood')
         ax[0].plot(list(estimate[:i+1,0]),list(estimate[:i+1,1]),'r')
@@ -177,8 +185,8 @@ def main():
         ax[0].set_ylabel('y')
         ax[0].legend()
         ax[1].hist(W)
-        ax[2].plot([x_true[0],x_true[0]],[x_true[1],x_true[1]],[0,np.max(W)],c='k')
-        ax[3].plot([x_true[0],x_true[0]],[x_true[1],x_true[1]],[0,np.max(W)],c='k')
+        # ax[2].plot([x_true[0],x_true[0]],[x_true[1],x_true[1]],[0,np.max(W)],c='k')
+        # ax[3].plot([x_true[0],x_true[0]],[x_true[1],x_true[1]],[0,np.max(W)],c='k')
         
         plt.pause(1)
         # raw_input("press to continue")
