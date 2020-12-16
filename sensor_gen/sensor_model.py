@@ -65,7 +65,7 @@ class sensor_gen:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    groundtruth_file = '/home/boray/Intro_Algorithmic_Robot/eecs498-localization/astar_path.pickle'
+    groundtruth_file = 'data/env2_hwk3.pickle'
     s = sensor_gen(filename=groundtruth_file)
     
     # plot difference between ideal and noisy sensor data
