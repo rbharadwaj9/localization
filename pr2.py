@@ -6,6 +6,9 @@ class PR2:
 
     def __init__(self, robot):
         self.robot = robot
+        self.A = np.eye(2)
+        self.B = np.eye(2)
+        self.C = np.eye(2)
 
     def get_true_location(self):
         location = self.robot.GetTransform()[:, 3]

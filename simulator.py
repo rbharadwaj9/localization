@@ -7,6 +7,7 @@ import pickle
 #### YOUR IMPORTS GO HERE ####
 import numpy as np
 from pr2 import PR2
+from KalmanFilter import KalmanFilter
 
 #### END OF YOUR IMPORTS ####
 
@@ -44,12 +45,16 @@ def ConvertPathToTrajectory(robot,path=[]):
 
 class Simulator:
 
-    def __init__(self, env, robot, path, actions, filter):
+    def __init__(self, env, robot, filename, filter):
         self.env = env
         self.pr2 = PR2(robot)
-        self.path = path
-        self.start = path[0, :]
-        self.actions = actions
+        self.filename = filename
+
+        with open(filename, "rb") as f:
+            in_dict = pickle.load(f)
+            self.actions = in_dict["action"]
+            self.path = in_dict["groundtruth"]
+        self.start = self.path[0, :]
         self.filter = filter
         self.N = self.path.shape(0)
 
@@ -59,19 +64,21 @@ class Simulator:
         self.robot.set_position(self.start.squeeze())
         Sigma = np.eye(2)
 
-        from kfmodel import A, B, C
-        R,Q = fitting()
+        R,Q = fitting(self.filename)
 
+        actual_path = np.zeros((2, self.N))
         for action in self.actions:
             z = self.robot.get_true_location()
             u = action
 
-            next_position, Sigma = self.filter(curr_position, Sigma, z, u, A, B, C, Q, R)
+            next_position, Sigma = self.filter(curr_position, Sigma, z, u, self.robot.A, self.robot.B, self.robot.C, Q, R)
+            self.robot.set_position(next_position)
+            actual_path[:, i] = np.squeeze(next_position)
 
-            estimated_states[:, i] = np.squeeze(next_position)
-
-
-
+            if env.CheckCollision(robot):
+                print "In collision"
+                break
+        return self.path, actual_path
 
 
 if __name__ == "__main__":
@@ -93,9 +100,8 @@ if __name__ == "__main__":
 
     # tuck in the PR2's arms for driving
     tuckarms(env,robot);
-
-
     handles = []
+
     with env:
         # the active DOF are translation in X and Y and rotation about the Z axis of the base of the robot.
         robot.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
@@ -104,11 +110,15 @@ if __name__ == "__main__":
 
         start = time.clock()
         #### YOUR CODE HERE ####
-        sim = Simulator(env, robot)
-        sim.pr2.get_true_location()
+        sim = Simulator(env, robot, file, KalmanFilter)
+        ground_truth, actual_path = sim.simulate()
 
-        #### Implement your algorithm to compute a path for the robot's base starting from the current configuration of the robot and ending at goalconfig. 
-        #### The robot's base DOF have already been set as active. It may be easier to implement this as a function in a separate file and call it here.
+        # PLOTTING
+        for pt in ground_truth:
+            handles.append(env.plot3(points=(pt.x, pt.y, 0.3), pointsize=3.0, colors=(((0,0,1)))))
+        for pt in actual_path:
+            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,0)))))
+
 
         # Now that you have computed a path, convert it to an openrave trajectory 
         traj = ConvertPathToTrajectory(robot, path)
