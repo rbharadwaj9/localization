@@ -3,16 +3,16 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-def fitting():    
+def fitting(filename):    
     # model
     A = np.eye(2)
-    B = np.matrix("1.5 0.1; 0.2 -0.5")
+    B = np.eye(2) # np.matrix("1.5 0.1; 0.2 -0.5")
 
     #sensor model
-    C = np.matrix("1.05 0.01; 0.01 0.9")
+    C = np.eye(2) # np.matrix("1.05 0.01; 0.01 0.9")
 
     # load data
-    with open("../astar_path.pickle","rb") as f:
+    with open(filename,"rb") as f:
         in_dict = pickle.load(f)
         noisy_measurement = in_dict['sensor_data']
         actions = in_dict['action']

@@ -29,7 +29,7 @@ if __name__ == "__main__":
     ax1.scatter(sample[0,:],sample[1,:],alpha = 0.3)
 
     # read path from astar
-    filename = 'astar_path.pickle'
+    filename = 'data/env2_hwk3.pickle'
     with open(filename, "rb") as f:
         in_dict = pickle.load(f)
     path = in_dict['path']
@@ -51,7 +51,6 @@ if __name__ == "__main__":
     ax = plt.subplot(122)
     ax.plot(groundtruth[:,0],groundtruth[:,1])   
     raw_input('press continue')
-    
     # save groundtruth and actions
     s = raw_input('save? y/n ')
     if s == 'y':

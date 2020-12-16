@@ -41,7 +41,7 @@ def main():
     plot_axes = plt.subplot(111) #aspect='equal'   
 
     #load in the data
-    PIK = "../astar_path.pickle"
+    PIK = "data/env2_hwk3.pickle"
     with open(PIK, "rb") as f:
         in_dict = pickle.load(f)
     noisy_measurement = in_dict['sensor_data'].transpose()
@@ -50,7 +50,7 @@ def main():
 
     #your model parameters are imported here
     from kfmodel import A, B, C
-    R,Q = fitting()
+    R,Q = fitting(PIK)
     
     #initialize the mean of the state estimate guassian
     mu = np.matrix(noisy_measurement[:,0]).transpose()
@@ -69,11 +69,11 @@ def main():
     #and estimate the state using the Kalman filter
     estimated_states = np.zeros((2,N))
 
+    import pdb; pdb.set_trace() 
     for i in range(1,N):
         z = np.matrix(noisy_measurement[:,i]).transpose() #current x
         u = np.matrix(actions[:,i]).transpose()           #current u
         #run the Kalman Filter
-        import pdb; pdb.set_trace()
         mu, Sigma = KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R)
         #store the result
         estimated_states[:,i] = np.squeeze(mu)  
@@ -82,6 +82,7 @@ def main():
             plot_axes = plot_cov(mu,Sigma,plot_axes)
 
     # #compute the error between your estimate and ground truth
+    import pdb; pdb.set_trace() 
     state_errors = estimated_states[:,1:N] - ground_truth_states[:,1:N]
     total_error=np.sum(np.linalg.norm(state_errors, axis=0))
     print "Total Error: %f"%total_error
