@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     env.Reset()
     # load a scene from ProjectRoom environment XML file
-    env.Load('data/pr2test2.env.xml')
+    env.Load('pr2test2.env.xml')
     time.sleep(0.1)
 
     # 1) get the 1st robot that is inside the loaded scene
@@ -70,45 +70,48 @@ if __name__ == "__main__":
         # the active DOF are translation in X and Y and rotation about the Z axis of the base of the robot.
         robot.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
-        goalconfig = [2.6,-1.3,-pi/2]
+        goalconfig = np.array([[2.6,-1.3,-pi/2],
+                               [-3.2, 1, -pi/2],
+                               [-3.4, -1.4, -pi/2]])
 
-        start = time.clock()
-        #### YOUR CODE HERE ####
+        # #### YOUR CODE HERE ####
 
         #### Implement your algorithm to compute a path for the robot's base starting from the current configuration of the robot and ending at goalconfig. 
         #### The robot's base DOF have already been set as active. It may be easier to implement this as a function in a separate file and call it here.
-        searcher = AStarSearch(robot.GetActiveDOFValues(), goalconfig, False, 0.1)
-        try:
-            searcher.search(env, robot)
-        except Exception as e:
-            print(e)
-        else:
-            searcher.backtrace()
+        start = robot.GetActiveDOFValues()
+        path = []
+        for goal in goalconfig:
+            searcher = AStarSearch(start, goal, False, 0.1)
+            try:
+                searcher.search(env, robot)
+            except Exception as e:
+                print(e)
+            else:
+                searcher.backtrace()
 
-        #### Draw the X and Y components of the configurations explored by your algorithm
-            for pt in searcher.closed_list:
-                robot.SetActiveDOFValues(pt.pos)
-                if env.CheckCollision(robot):
-                    handles.append(env.plot3(points=(pt.x, pt.y, 0.3), pointsize=3.0, colors=(((1,0,0)))))
-                else:
-                    handles.append(env.plot3(points=(pt.x, pt.y, 0.3), pointsize=3.0, colors=(((0,0,1)))))
-            for pt in searcher.solution:
-                handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,0)))))
+            #### Draw the X and Y components of the configurations explored by your algorithm
+                for pt in searcher.closed_list:
+                    robot.SetActiveDOFValues(pt.pos)
+                    if env.CheckCollision(robot):
+                        handles.append(env.plot3(points=(pt.x, pt.y, 0.3), pointsize=3.0, colors=(((1,0,0)))))
+                    else:
+                        handles.append(env.plot3(points=(pt.x, pt.y, 0.3), pointsize=3.0, colors=(((0,0,1)))))
+                for pt in searcher.solution:
+                    handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,0)))))
 
+            path.extend(searcher.solution)  #put your final path in this variable
+            start = goal
 
-
-            # import pdb; pdb.set_trace()
-        path = searcher.solution #put your final path in this variable
-
-        with open(os.getenv('PICKLE_FILE'), 'wb') as f:
-            in_dict = {'path': path}
-            pickle.dump(in_dict, f,protocol=pickle.HIGHEST_PROTOCOL)
+        save = raw_input("Save? (y/n) ")
+        if save == 'y':
+            filename = raw_input("Please enter file to save in: ")
+            with open(filename, 'wb') as f:
+                in_dict = {'path': path}
+                pickle.dump(in_dict, f,protocol=pickle.HIGHEST_PROTOCOL)
 
         #### END OF YOUR CODE ###
         end = time.clock()
-        print "Time: ", end - start
         time.sleep(5)
-        print "Cost: ", searcher.goal.cost
 
         # Now that you have computed a path, convert it to an openrave trajectory 
         traj = ConvertPathToTrajectory(robot, path)
