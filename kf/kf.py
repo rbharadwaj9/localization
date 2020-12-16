@@ -73,6 +73,7 @@ def main():
         z = np.matrix(noisy_measurement[:,i]).transpose() #current x
         u = np.matrix(actions[:,i]).transpose()           #current u
         #run the Kalman Filter
+        import pdb; pdb.set_trace()
         mu, Sigma = KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R)
         #store the result
         estimated_states[:,i] = np.squeeze(mu)  

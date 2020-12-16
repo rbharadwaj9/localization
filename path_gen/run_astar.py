@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     env.Reset()
     # load a scene from ProjectRoom environment XML file
-    env.Load('pr2test2.env.xml')
+    env.Load('path_gen/pr2test2.env.xml')
     time.sleep(0.1)
 
     # 1) get the 1st robot that is inside the loaded scene
@@ -114,6 +114,7 @@ if __name__ == "__main__":
         time.sleep(5)
 
         # Now that you have computed a path, convert it to an openrave trajectory 
+        import pdb; pdb.set_trace() 
         traj = ConvertPathToTrajectory(robot, path)
 
     # Execute the trajectory on the robot.

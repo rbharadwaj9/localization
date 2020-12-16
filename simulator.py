@@ -8,6 +8,7 @@ import pickle
 import numpy as np
 from pr2 import PR2
 from KalmanFilter import KalmanFilter
+from tuning import fitting
 
 #### END OF YOUR IMPORTS ####
 
@@ -54,31 +55,39 @@ class Simulator:
             in_dict = pickle.load(f)
             self.actions = in_dict["action"]
             self.path = in_dict["groundtruth"]
-        self.start = self.path[0, :]
+            self.noisy_measurement = in_dict["sensor_data"]
+        self.start = self.path[0, :].reshape(2,-1)
         self.filter = filter
-        self.N = self.path.shape(0)
+        self.N = self.path.shape[0]
 
     def simulate(self):
         # Set the robot to starting position
         curr_position = self.start
-        self.robot.set_position(self.start.squeeze())
+        self.pr2.set_position(self.start.squeeze())
         Sigma = np.eye(2)
 
-        R,Q = fitting(self.filename)
+        R,Q = fitting(self.filename, self.pr2.A, self.pr2.B, self.pr2.C)
 
         actual_path = np.zeros((2, self.N))
-        for action in self.actions:
-            z = self.robot.get_true_location()
-            u = action
+        import pdb; pdb.set_trace() 
+        for i, action in enumerate(self.actions):
+            z = self.noisy_measurement[i].reshape((-1,1))
+            u = action.reshape((-1,1))
 
-            next_position, Sigma = self.filter(curr_position, Sigma, z, u, self.robot.A, self.robot.B, self.robot.C, Q, R)
-            self.robot.set_position(next_position)
+            next_position, Sigma = self.filter(curr_position, Sigma, z, u, self.pr2.A, self.pr2.B, self.pr2.C, R, Q)
+            next_position = np.dot(next_position, np.array([1,1]).reshape((2,1)))
             actual_path[:, i] = np.squeeze(next_position)
+            curr_position = next_position
+            self.pr2.set_position(curr_position)
 
-            if env.CheckCollision(robot):
+            if env.CheckCollision(self.pr2.robot):
                 print "In collision"
                 break
-        return self.path, actual_path
+
+        rval = []
+        for pt in actual_path.T:
+            rval.append(np.append(np.squeeze(pt), -np.pi/2))
+        return self.path, rval
 
 
 if __name__ == "__main__":
@@ -110,18 +119,19 @@ if __name__ == "__main__":
 
         start = time.clock()
         #### YOUR CODE HERE ####
-        sim = Simulator(env, robot, file, KalmanFilter)
+        sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
         ground_truth, actual_path = sim.simulate()
 
         # PLOTTING
         for pt in ground_truth:
-            handles.append(env.plot3(points=(pt.x, pt.y, 0.3), pointsize=3.0, colors=(((0,0,1)))))
+            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=3.0, colors=(((0,0,1)))))
         for pt in actual_path:
-            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,0)))))
+            handles.append(env.plot3(points=(pt[0], pt[1], 0.6), pointsize=5.0, colors=(((0,0,0)))))
 
 
         # Now that you have computed a path, convert it to an openrave trajectory 
-        traj = ConvertPathToTrajectory(robot, path)
+        import pdb; pdb.set_trace() 
+        traj = ConvertPathToTrajectory(robot, actual_path)
 
     # Execute the trajectory on the robot.
     if traj != None:
