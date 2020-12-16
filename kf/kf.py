@@ -62,7 +62,7 @@ def main():
     # specify number of data points to consider
     # it may be easier to debug with fewer data points
     # remember to set this back to N = 100 to get the screenshot for your pdf
-    N = 83
+    N = actions.shape[1]
     # ###YOUR CODE HERE###
 
     #go through each measurement and action...
@@ -71,8 +71,8 @@ def main():
 
     import pdb; pdb.set_trace() 
     for i in range(1,N):
-        z = np.matrix(noisy_measurement[:,i]).transpose() #current x
-        u = np.matrix(actions[:,i]).transpose()           #current u
+        z = np.matrix(noisy_measurement[:,i]).transpose()
+        u = np.matrix(actions[:,i]).transpose()
         #run the Kalman Filter
         mu, Sigma = KalmanFilter(mu, Sigma, z, u, A, B, C, Q, R)
         #store the result
@@ -91,6 +91,7 @@ def main():
     plt.plot(ground_truth_states[0,0:N], ground_truth_states[1,0:N],'k',linewidth=2.0)
     plt.scatter(noisy_measurement[0,0:N], noisy_measurement[1,0:N],c='b')
     plt.plot(estimated_states[0,1:N], estimated_states[1,1:N],'r',linewidth=2.0)
+    plt.scatter(estimated_states[0,1:N], estimated_states[1,1:N],c='r')
     plt.xlabel('x')
     plt.ylabel('y')
     plt.show()

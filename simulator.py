@@ -53,32 +53,32 @@ class Simulator:
 
         with open(filename, "rb") as f:
             in_dict = pickle.load(f)
-            self.actions = in_dict["action"]
-            self.path = in_dict["groundtruth"]
-            self.noisy_measurement = in_dict["sensor_data"].transpose()
+        self.actions = in_dict["action"].transpose()
+        self.path = in_dict["groundtruth"].transpose()
+        self.noisy_measurement = in_dict["sensor_data"].transpose()
         self.start = self.noisy_measurement[:, 0].reshape((-1,1))
         self.filter = filter
-        self.N = self.path.shape[0]
+        self.N = self.path.shape[1]
 
     def simulate(self):
         # Set the robot to starting position
-        curr_position = self.start
+        curr_position = np.matrix(self.start)
         self.pr2.set_position(self.start.squeeze())
         Sigma = np.eye(2)
 
         R,Q = fitting(self.filename, self.pr2.A, self.pr2.B, self.pr2.C)
 
         actual_path = np.zeros((2, self.N))
+        z0 = np.matrix(self.noisy_measurement[:,0]).T
+        actual_path[:,0] = np.squeeze(np.array(np.linalg.inv(self.pr2.C) * z0))
         import pdb; pdb.set_trace() 
-        for i, action in enumerate(self.actions):
-            if i == 0:
-                continue
-            z = self.noisy_measurement[:, i].reshape((-1,1))
-            u = action.reshape((-1,1))
+        for i in range(1,self.N):
+            z = np.matrix(self.noisy_measurement[:,i]).transpose()
+            u = np.matrix(self.actions[:,i]).transpose()
 
-            curr_position, Sigma = self.filter(curr_position, Sigma, z, u, self.pr2.A, self.pr2.B, self.pr2.C, R, Q)
-            curr_position = np.dot(curr_position, np.array([[1],[1]]))
-            actual_path[:, i] = np.squeeze(curr_position)
+            curr_position, Sigma = self.filter(curr_position, Sigma, z, u, np.matrix(self.pr2.A), np.matrix(self.pr2.B), np.matrix(self.pr2.C), np.matrix(Q), np.matrix(R))
+            # curr_position = np.dot(curr_position, np.array([[1],[1]]))
+            actual_path[:, i] = np.squeeze(np.array(curr_position))
             self.pr2.set_position(curr_position)
 
             # if env.CheckCollision(self.pr2.robot):
@@ -89,7 +89,7 @@ class Simulator:
         rval = []
         for pt in actual_path.T:
             rval.append(np.append(np.squeeze(pt), -np.pi/2))
-        return self.path, rval
+        return self.path.transpose(), rval
 
 
 if __name__ == "__main__":
