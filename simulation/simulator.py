@@ -44,16 +44,34 @@ def ConvertPathToTrajectory(robot,path=[]):
 
 class Simulator:
 
-    def __init__(self, env, robot, path, which_filter):
+    def __init__(self, env, robot, path, actions, filter):
         self.env = env
         self.pr2 = PR2(robot)
         self.path = path
-
-        if which_filter == "kalman":
-            self.filter = KalmanFilter()
+        self.start = path[0, :]
+        self.actions = actions
+        self.filter = filter
+        self.N = self.path.shape(0)
 
     def simulate(self):
-        self.pr2.get_true_location()
+        # Set the robot to starting position
+        curr_position = self.start
+        self.robot.set_position(self.start.squeeze())
+        Sigma = np.eye(2)
+
+        from kfmodel import A, B, C
+        R,Q = fitting()
+
+        for action in self.actions:
+            z = self.robot.get_true_location()
+            u = action
+
+            next_position, Sigma = self.filter(curr_position, Sigma, z, u, A, B, C, Q, R)
+
+            estimated_states[:, i] = np.squeeze(next_position)
+
+
+
 
 
 if __name__ == "__main__":
