@@ -27,15 +27,15 @@ class sensor_gen:
         return np.matrix(self.source_dict[src_objname])[:,0:2]
 
     # define sensor noise
-    def noise_model(self,outlier_rate = 0.3, outlier_range = 2):
-        val = np.random.multivariate_normal([0,0],[[ 5e-3,-6e-5 ],[-6e-5,5e-3]]) # distribution
+    def noise_model(self,outlier_rate = 0.05, outlier_range = 2):
+        val = np.random.multivariate_normal([0,0],[[ 1e-1, -8e-2 ],[ -8e-2,1e-1]]) # distribution
         val = np.reshape(val,(2,1))
         # Outlier
-        if np.random.rand(1) < outlier_rate:
-            theta = np.random.uniform(0,np.pi*2)
-            # print theta
-            # print [[np.sin(theta)],[np.cos(theta)]]
-            val = val + 1*np.matrix([[np.sin(theta)],[np.cos(theta)]])
+        # if np.random.rand(1) < outlier_rate:
+        #     theta = np.random.uniform(0,np.pi*2)
+        #     # print theta
+        #     # print [[np.sin(theta)],[np.cos(theta)]]
+        #     val = val + 1*np.matrix([[np.sin(theta)],[np.cos(theta)]])
         return val
     
     # return ideal sensor data
@@ -65,7 +65,7 @@ class sensor_gen:
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
-    groundtruth_file = 'astar_path.pickle'
+    groundtruth_file = '/home/boray/Intro_Algorithmic_Robot/eecs498-localization/astar_path.pickle'
     s = sensor_gen(filename=groundtruth_file)
     
     # plot difference between ideal and noisy sensor data
@@ -90,4 +90,11 @@ if __name__ == "__main__":
     ax1.legend()
     input_str = raw_input('save? y/n ')
     if input_str == 'y':
-        s.save_data('astar_path.pickle','sensor_data')
+        s.save_data(groundtruth_file,'sensor_data')
+    
+    # save sensor noise samples
+    with open(groundtruth_file, "rb") as f:
+        source_dict = pickle.load(f)
+        source_dict['sensor_noise'] = sample.transpose()
+    with open(groundtruth_file, "wb") as f:
+        pickle.dump(source_dict,f,protocol=pickle.HIGHEST_PROTOCOL)
