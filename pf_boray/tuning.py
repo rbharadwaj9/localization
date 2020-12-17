@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 def fitting(filename):    
     # model
     A = np.eye(2)
-    B = np.matrix("1.5 0.1; 0.2 -0.5")
+    B = np.eye(2) #np.matrix("1.5 0.1; 0.2 -0.5")
 
     #sensor model
-    C = np.matrix("1.05 0.01; 0.01 0.9")
+    C = np.eye(2) #np.matrix("1.05 0.01; 0.01 0.9")
 
     # load data
     with open(filename,"rb") as f:
