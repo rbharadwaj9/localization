@@ -16,6 +16,11 @@ Exists in `kf/` \n
 
 This is where the robot's data can be tested and plotted with matplotlib. Essentially the same as simulator but without OpenRAVE
 
+#### Particle Filter
+Exists in `ParticleFilter.py`<br>
+It defines `ParticleFilter` class to handle the data need to store and method for each action and sensing.<br>
+There is a demo main function inside, so just call it and it would plot path estimation and scatter plot for weight calculation
+
 #### Path Generation
 Exists in `path_gen/` \n
 Generates an A\* path based on the waypoints given.
