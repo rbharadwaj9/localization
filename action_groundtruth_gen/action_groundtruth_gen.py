@@ -1,4 +1,5 @@
 import numpy as np
+from sys import argv
 import matplotlib.pyplot as plt
 import pickle
 
@@ -29,7 +30,12 @@ if __name__ == "__main__":
     ax1.scatter(sample[0,:],sample[1,:],alpha = 0.3)
 
     # read path from astar
-    filename = 'data/env2_hwk3.pickle'
+    try:
+        filename = argv[1]
+    except IndexError:
+        print "Please enter a filename of path data"
+        exit(0)
+
     with open(filename, "rb") as f:
         in_dict = pickle.load(f)
     path = in_dict['path']

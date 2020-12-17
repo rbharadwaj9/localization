@@ -61,6 +61,11 @@ class Simulator:
         self.filter = filter
         self.N = self.path.shape[1]
 
+    def calculate_error(self, ground, estimated):
+        state_errors = estimated[:,1:self.N] - ground[:,1:self.N]
+        total_error=np.sum(np.linalg.norm(state_errors, axis=0))
+        return total_error
+
     def simulate(self):
         # Set the robot to starting position
         curr_position = np.matrix(self.start)
@@ -72,7 +77,7 @@ class Simulator:
         actual_path = np.zeros((2, self.N))
         z0 = np.matrix(self.noisy_measurement[:,0]).T
         actual_path[:,0] = np.squeeze(np.array(np.linalg.inv(self.pr2.C) * z0))
-        import pdb; pdb.set_trace() 
+
         for i in range(1,self.N):
             z = np.matrix(self.noisy_measurement[:,i]).transpose()
             u = np.matrix(self.actions[:,i]).transpose()
@@ -86,7 +91,8 @@ class Simulator:
             #     print "In collision"
             #     break
 
-        import pdb; pdb.set_trace() 
+        print "Total Error: %f"%self.calculate_error(self.path, actual_path)
+
         rval = []
         for pt in actual_path.T:
             rval.append(np.append(np.squeeze(pt), -np.pi/2))
@@ -118,9 +124,6 @@ if __name__ == "__main__":
         # the active DOF are translation in X and Y and rotation about the Z axis of the base of the robot.
         robot.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
-        goalconfig = [2.6,-1.3,-pi/2]
-
-        start = time.clock()
         #### YOUR CODE HERE ####
         PF = ParticleFilter(1000, [[-4.,4.],[-1.5,4.]],0.1)
         sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
@@ -131,11 +134,9 @@ if __name__ == "__main__":
         for pt in ground_truth:
             handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=3.0, colors=(((0,0,1)))))
         for pt in actual_path:
-            handles.append(env.plot3(points=(pt[0], pt[1], 0.6), pointsize=5.0, colors=(((0,0,0)))))
-
+            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,0)))))
 
         # Now that you have computed a path, convert it to an openrave trajectory 
-        import pdb; pdb.set_trace() 
         traj = ConvertPathToTrajectory(robot, actual_path)
 
     # Execute the trajectory on the robot.
