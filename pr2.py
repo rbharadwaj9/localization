@@ -10,8 +10,8 @@ class PR2:
         self.A = np.eye(2)
         self.B = np.eye(2)
         self.C = np.eye(2)
-        cov = [[ 1e-1, -8e-2 ],
-               [ -8e-2, 1e-1]]
+        cov = [[ 1e-1, -8e-5 ],
+               [ -8e-5, 1e-1]]
         self.sensor = Sensor(self.C, cov)
 
     def get_true_location(self):

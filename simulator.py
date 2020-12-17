@@ -88,10 +88,10 @@ class Simulator:
             curr_position, Sigma = self.filter(curr_position, Sigma, z, u, np.matrix(self.pr2.A), np.matrix(self.pr2.B), np.matrix(self.pr2.C), np.matrix(Q), np.matrix(R))
             actual_path[:, i] = np.squeeze(np.array(curr_position))
 
-            if not in_collision:
+            if i > 4:
                 self.pr2.set_position(curr_position)
                 if env.CheckCollision(self.pr2.robot):
-                    print "In collision"
+                    print "In collision ", i
                     in_collision = True
 
             self.pr2.set_position(self.path[:, i])
