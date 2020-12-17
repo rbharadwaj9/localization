@@ -31,7 +31,8 @@ def fitting(filename):
         sensor_errors[:,i] = np.squeeze(z_t - C*x_t)
     
     motion_cov=np.cov(motion_errors)
-    sensor_cov=np.cov(sensor_errors)
+    sensor_cov=np.cov(in_dict['sensor_noise'].transpose())
+    # sensor_cov=np.cov(sensor_errors)
 
     return motion_cov,sensor_cov
 
