@@ -64,7 +64,7 @@ class ParticleFilter:
         x_max = sum/np.sum(Wt)
         
         # inject randomness
-        w_min = np.max(Wt)/1000
+        w_min = np.median(Wt)
         indeces = []
         while len(indeces) < round(self.N*self.random_ratio):
             n = np.random.randint(0,self.N)
@@ -72,7 +72,8 @@ class ParticleFilter:
                 indeces.append(n)
                 for i,random_range in enumerate(self.init_range):
                     Xt[n,i] = np.random.uniform(random_range[0],random_range[1],1)
-                Wt[n] = w_min
+                
+                Wt[n] = self.sensing_pdf(C,Q,z,np.matrix(Xt[n,:]).T)*w_min
 
         cov = np.cov(Xt.transpose())
 
