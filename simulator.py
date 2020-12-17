@@ -9,6 +9,7 @@ import numpy as np
 from pr2 import PR2
 from KalmanFilter import KalmanFilter
 from tuning import fitting
+from ParticleFilter import ParticleFilter
 
 #### END OF YOUR IMPORTS ####
 
@@ -121,7 +122,9 @@ if __name__ == "__main__":
 
         start = time.clock()
         #### YOUR CODE HERE ####
-        sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
+        PF = ParticleFilter(500, [[-1.8,1.5],[-3.5,3]])
+        sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
+        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
         ground_truth, actual_path = sim.simulate()
 
         # PLOTTING
