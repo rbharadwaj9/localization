@@ -1,6 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import pickle
 import os
+from sys import argv
 
 class sensor_gen:
     # initial sensor_gen object
@@ -64,8 +66,11 @@ class sensor_gen:
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    groundtruth_file = 'data/env2_hwk3.pickle'
+    try:
+        groundtruth_file = argv[1]
+    except IndexError:
+        print "Please enter a filename of path data"
+        exit(0)
     s = sensor_gen(filename=groundtruth_file)
     
     # plot difference between ideal and noisy sensor data
