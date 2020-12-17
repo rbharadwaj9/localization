@@ -33,11 +33,11 @@ class sensor_gen:
         val = np.random.multivariate_normal([0,0],[[ 1e-1, -8e-2 ],[ -8e-2,1e-1]]) # distribution
         val = np.reshape(val,(2,1))
         # Outlier
-        # if np.random.rand(1) < outlier_rate:
-        #     theta = np.random.uniform(0,np.pi*2)
-        #     # print theta
-        #     # print [[np.sin(theta)],[np.cos(theta)]]
-        #     val = val + 1*np.matrix([[np.sin(theta)],[np.cos(theta)]])
+        if np.random.rand(1) < outlier_rate:
+            theta = np.random.uniform(0,np.pi*2)
+            # print theta
+            # print [[np.sin(theta)],[np.cos(theta)]]
+            val = val + 1*np.matrix([[np.sin(theta)],[np.cos(theta)]])
         return val
     
     # return ideal sensor data

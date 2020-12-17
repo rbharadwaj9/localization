@@ -131,7 +131,7 @@ def main():
         fig.scatter(z[0,0],z[1,0],c='g')
         u = np.matrix(actions[:,i]).transpose()
 
-        xh,cov, pf.X, pf.W = pf.filter(None,None,z,u,A,B,C,Q,R)
+        xh, cov = pf.filter(None,None,z,u,A,B,C,Q,R)
         estimate_states[:,i] = np.squeeze(np.array(xh))
         plt.pause(0.5)
     

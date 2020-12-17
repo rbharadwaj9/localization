@@ -1,5 +1,6 @@
 # Implements Functions needed from PR2 Robot
 import numpy as np
+from sensor import Sensor
 
 
 class PR2:
@@ -9,10 +10,14 @@ class PR2:
         self.A = np.eye(2)
         self.B = np.eye(2)
         self.C = np.eye(2)
+        self.sensor = Sensor(self.C)
 
     def get_true_location(self):
         location = self.robot.GetTransform()[:, 3]
-        return np.array([[location[0], location[1]]]).T
+        return np.array([[location[0], location[1]]])
+
+    def gps_measurement(self):
+        return self.sensor.gen_single_noisy(np.matrix(self.get_true_location()))
 
     def set_position(self, coordinates):
         # coodinates must be a 1D array of size 2

@@ -58,6 +58,7 @@ class Simulator:
         self.path = in_dict["groundtruth"].transpose()
         self.noisy_measurement = in_dict["sensor_data"].transpose()
         self.start = self.noisy_measurement[:, 0].reshape((-1,1))
+        # self.start = self.path[:, 0].reshape((-1,1)) # self.noisy_measurement[:, 0].reshape((-1,1))
         self.filter = filter
         self.N = self.path.shape[1]
 
@@ -78,25 +79,29 @@ class Simulator:
         z0 = np.matrix(self.noisy_measurement[:,0]).T
         actual_path[:,0] = np.squeeze(np.array(np.linalg.inv(self.pr2.C) * z0))
 
+        in_collision = False
+
         for i in range(1,self.N):
-            z = np.matrix(self.noisy_measurement[:,i]).transpose()
+            z = self.pr2.gps_measurement() # np.matrix(self.noisy_measurement[:,i]).transpose()
             u = np.matrix(self.actions[:,i]).transpose()
 
             curr_position, Sigma = self.filter(curr_position, Sigma, z, u, np.matrix(self.pr2.A), np.matrix(self.pr2.B), np.matrix(self.pr2.C), np.matrix(Q), np.matrix(R))
-            # curr_position = np.dot(curr_position, np.array([[1],[1]]))
             actual_path[:, i] = np.squeeze(np.array(curr_position))
-            self.pr2.set_position(curr_position)
 
-            # if env.CheckCollision(self.pr2.robot):
-            #     print "In collision"
-            #     break
+            if not in_collision:
+                self.pr2.set_position(curr_position)
+                if env.CheckCollision(self.pr2.robot):
+                    print "In collision"
+                    in_collision = True
+
+            self.pr2.set_position(self.path[:, i])
 
         print "Total Error: %f"%self.calculate_error(self.path, actual_path)
 
         rval = []
         for pt in actual_path.T:
             rval.append(np.append(np.squeeze(pt), -np.pi/2))
-        return self.path.transpose(), rval
+        return self.path.transpose(), rval, in_collision
 
 
 if __name__ == "__main__":
@@ -126,9 +131,11 @@ if __name__ == "__main__":
 
         #### YOUR CODE HERE ####
         PF = ParticleFilter(1000, [[-4.,4.],[-1.5,4.]],0.1)
-        sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
-        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
-        ground_truth, actual_path = sim.simulate()
+        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
+        sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
+        ground_truth, actual_path, in_collision = sim.simulate()
+        if in_collision:
+            print "Estimated Path is in Collision."
 
         # PLOTTING
         for pt in ground_truth:

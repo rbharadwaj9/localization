@@ -1,4 +1,5 @@
 # File carries the sensor model based on the robot's status in the openrave environmen
+import numpy as np
 
 class Sensor:
 
