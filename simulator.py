@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
         start = time.clock()
         #### YOUR CODE HERE ####
-        PF = ParticleFilter(500, [[-1.8,1.5],[-3.5,3]])
+        PF = ParticleFilter(1000, [[-4.,4.],[-1.5,4.]],0.1)
         sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
         # sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
         ground_truth, actual_path = sim.simulate()
