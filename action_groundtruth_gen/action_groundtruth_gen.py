@@ -13,7 +13,7 @@ class motion:
         p = np.random.rand(2,1)
         pos = np.greater(p,0.85,dtype=float)
         neg = np.less(p,0.15,dtype=float)
-        noise = pos*5e-3 + neg*-5e-3 + np.random.normal(0,1e-4,(2,1))
+        noise = np.reshape(np.random.multivariate_normal([0,0],[[.003,.001],[.001,.001]]),(2,1)) # pos*5e-3 + neg*-5e-3
         return noise
 
     def getOutput(self,x0,u):
