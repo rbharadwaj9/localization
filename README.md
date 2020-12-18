@@ -1,4 +1,7 @@
 # EECS 498 Final Project - Localization
+
+![](report/demo.png)
+
 EECS 498 - Fall 2020 <br>
 Prof. Dmitry Berenson <br>
 GSI: Anthony Liang <br>
