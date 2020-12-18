@@ -22,27 +22,46 @@ def plot_report(kf_gt, kf_estimate, kf_collision, pf_gt, pf_estimate, pf_collisi
     plt.ion()
     kf_estimate_rebuild = np.array(kf_estimate)
     kf_collision_pts = np.array([kf_estimate[i] for i in range(len(kf_estimate)) if kf_collision[i]])
+    pf_estimate_rebuild = np.array(pf_estimate)
+    pf_collision_pts = np.array([pf_estimate[i] for i in range(len(pf_estimate)) if pf_collision[i]])
 
-    fig = plt.subplot(121)
+    ax = plt.subplot(131)
+
+    ax.plot(kf_gt[:,0], kf_gt[:,1],c='k',label='Ground truth')
+    ax.plot(kf_estimate_rebuild[:,0], pf_estimate_rebuild[:,1],c='b',label='Estimation PF')
+    ax.plot(kf_estimate_rebuild[:,0], kf_estimate_rebuild[:,1],c='g',label='Estimation KF')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_title('Estimations of KF and PF with ground truth')
+    ax.legend()
+
+    fig = plt.subplot(132)
     fig.cla()
     fig.plot(kf_gt[:, 0], kf_gt[:, 1], c = 'k', label="Ground Truth")
     fig.plot(kf_estimate_rebuild[:, 0], kf_estimate_rebuild[:, 1], c = 'g', label="Estimate")
-    fig.scatter(kf_collision_pts[:, 0], kf_collision_pts[:, 1], c = 'm', label="Points in Collision")
+    if (kf_collision_pts != []):
+        fig.scatter(kf_collision_pts[:, 0], kf_collision_pts[:, 1], c = 'm', label="Points in Collision")
     fig.set_title("Kalman Filter Estimate")
+    fig.set_xlabel('x')
+    fig.set_ylabel('y')
     fig.legend()
 
-    fig2 = plt.subplot(122)
+    fig2 = plt.subplot(133)
     fig2.cla()
 
-    pf_estimate_rebuild = np.array(pf_estimate)
-    pf_collision_pts = np.array([pf_estimate[i] for i in range(len(pf_estimate)) if pf_collision[i]])
     fig2.plot(pf_gt[:, 0], pf_gt[:, 1], c = 'k', label="Ground Truth")
     fig2.plot(pf_estimate_rebuild[:, 0], pf_estimate_rebuild[:, 1], c = 'b', label="Estimate")
-    fig2.scatter(pf_collision_pts[:, 0], pf_collision_pts[:, 1], c = 'r', label="Points in Collision")
+    if (pf_collision_pts != []):
+        fig2.scatter(pf_collision_pts[:, 0], pf_collision_pts[:, 1], c = 'r', label="Points in Collision")
     fig2.set_title("Particle Filter Estimate")
-    fig.legend()
+    fig2.set_xlabel('x')
+    fig2.set_ylabel('y')
+    fig2.legend()
+
+    plt.pause(0.01)
 
     plt.show()
+
 
 
 def main():
@@ -74,13 +93,21 @@ def main():
         # the active DOF are translation in X and Y and rotation about the Z axis of the base of the robot.
         robot0.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
+        # ******* Printout expected time to run ****** 
+        print "Estimated time to run: 10~12 minutes"
+        print "Ground truth: black points"
+        print "Estimation of Particle Filter: blue points/ red if in-collision"
+        print "Estimation of Kalman Filter: green points/ purple if in-collision"
+
         # ******* PARTICLE FILTER *******
         PF = ParticleFilter(500, [[-4.0, 4.0], [-1.5, 4.0]], 0.1, 'multivariate_normal')
         pf_sim = Simulator(env, robot0, filename, PF.filter)
+        print "****** Particle Filter ******"
 
         start = time.clock()
         pf_ground_truth, pf_actual_path, pf_in_collision = pf_sim.simulate()
         end = time.clock()
+
 
         print "PF Test for ", filename
         print "Execution Time: ", end-start
@@ -103,6 +130,7 @@ def main():
 
         # ******* KALMAN FILTER *******
         kf_sim = Simulator(env, robot0, filename, KalmanFilter)
+        print "****** Kalman Filter ******"
 
         start = time.clock()
         kf_ground_truth, kf_actual_path, kf_in_collision = kf_sim.simulate()
@@ -124,7 +152,7 @@ def main():
 
         kf_traj = ConvertPathToTrajectory(env, robot0, kf_actual_path)
 
-    plot_report(kf_ground_truth, kf_actual_path, kf_in_collision, pf_ground_truth, pf_actual_path, pf_in_collision)
+        plot_report(kf_ground_truth, kf_actual_path, kf_in_collision, pf_ground_truth, pf_actual_path, pf_in_collision)
 
 
     raw_input("Press to play particle path")
