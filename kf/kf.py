@@ -41,7 +41,7 @@ def main():
     plot_axes = plt.subplot(111) #aspect='equal'   
 
     #load in the data
-    PIK = "data/env2_hwk3.pickle"
+    PIK = "data/env2_hwk3_skewnorm.pickle"
     with open(PIK, "rb") as f:
         in_dict = pickle.load(f)
     noisy_measurement = in_dict['sensor_data'].transpose()

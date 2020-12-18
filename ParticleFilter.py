@@ -105,8 +105,10 @@ from tuning import fitting
 from mpl_toolkits.mplot3d import Axes3D
 
 def main():
-    pf = ParticleFilter(500,[[-4.,4.],[-1.5,4.]],0.1,'multivariate_normal') #,Q=[-13.63,0.0056,0.517]
-    PIK = "data/env2_hwk3_pose.pickle"
+    # pf = ParticleFilter(500,[[-4.,4.],[-1.5,4.]],0.1,'multivariate_normal') #,Q=[-13.63,0.0056,0.517]
+    pf = ParticleFilter(500,[[-4.,4.],[-1.5,4.]],0.1,'skewnorm', Q=[-10,0,0.5])
+
+    PIK = "data/env2_hwk3_skewnorm.pickle"
     with open(PIK,"r") as f:
         in_dict = pickle.load(f)
     actions = in_dict["action"].transpose()

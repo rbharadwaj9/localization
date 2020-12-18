@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pickle
 import os
 from sys import argv
+from scipy.stats import skewnorm
 
 class sensor_gen:
     # initial sensor_gen object
@@ -30,16 +31,16 @@ class sensor_gen:
 
     # define sensor noise
     def noise_model(self,outlier_rate = 0.05, outlier_range = 2):
-        val = np.random.multivariate_normal([0,0],[[ 1e-2, -8e-5 ],
-                                                   [-8e-5, 1e-2]]) # distribution
+        # val = np.random.multivariate_normal([0,0],[[ 2e-2, 9.99e-3 ],[9.99e-3, 1e-2]]) # distribution
+        val = skewnorm.rvs(-10.,0.,0.5,2) + 0.12222620633749148
         val = np.reshape(val,(2,1))
         # Outlier
-        if np.random.rand(1) < outlier_rate:
-            theta = np.random.uniform(0,np.pi*2)
-            # print theta
-            # print [[np.sin(theta)],[np.cos(theta)]]
-            val = val + 1*np.matrix([[np.sin(theta)],[np.cos(theta)]])
-        return val
+        # if np.random.rand(1) < outlier_rate:
+        #     theta = np.random.uniform(0,np.pi*2)
+        #     # print theta
+        #     # print [[np.sin(theta)],[np.cos(theta)]]
+        #     val = val + 0.5*np.array([np.sin(theta),np.cos(theta)])
+        return np.reshape(val,(2,1))
     
     # return ideal sensor data
     def gen_ideal(self):
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     except IndexError:
         print "Please enter a filename of path data"
         exit(0)
-    s = sensor_gen(filename=groundtruth_file)
+    s = sensor_gen(filename=groundtruth_file,C=np.matrix('1 0;0 1'))
     
     # plot difference between ideal and noisy sensor data
     plt.ion()
