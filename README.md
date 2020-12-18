@@ -1,5 +1,11 @@
 # EECS 498 Final Project - Localization
-
+EECS 498 - Fall 2020 <br>
+Prof. Dmitry Berenson <br>
+GSI: Anthony Liang <br>
+<br>
+Bo-Ray Yeh (boray@umich.edu) <br>
+Rajiv Bharadwaj (rajivbh@umich.edu)<br>
+<br>
 ## Running the Demonstration Program `demo.py`
 This performs a demonstration of the simulator by taking the data from `data/env2_circle_back.pickle` and shows the OpenRAVE and Matplotlib output of the estimations for each algorithm.
 
