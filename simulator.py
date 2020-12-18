@@ -56,6 +56,7 @@ class Simulator:
             in_dict = pickle.load(f)
         self.actions = in_dict["action"].transpose()
         self.path = in_dict["groundtruth"].transpose()
+        self.plan = in_dict['path']
         self.noisy_measurement = in_dict["sensor_data"].transpose()
         self.start = self.noisy_measurement[:, 0].reshape((-1,1))
         # self.start = self.path[:, 0].reshape((-1,1)) # self.noisy_measurement[:, 0].reshape((-1,1))
@@ -70,7 +71,7 @@ class Simulator:
     def simulate(self):
         # Set the robot to starting position
         curr_position = np.matrix(self.start)
-        self.pr2.set_position(self.start.squeeze())
+        self.pr2.set_position(self.start.squeeze(),self.plan[0][2])
         Sigma = np.eye(2)
 
         R,Q = fitting(self.filename, self.pr2.A, self.pr2.B, self.pr2.C)
@@ -79,28 +80,30 @@ class Simulator:
         z0 = np.matrix(self.noisy_measurement[:,0]).T
         actual_path[:,0] = np.squeeze(np.array(np.linalg.inv(self.pr2.C) * z0))
 
-        in_collision = False
+        in_collision = []
 
         for i in range(1,self.N):
-            z = self.pr2.gps_measurement() # np.matrix(self.noisy_measurement[:,i]).transpose()
+            z = np.matrix(self.noisy_measurement[:,i]).transpose() # self.pr2.gps_measurement() # 
             u = np.matrix(self.actions[:,i]).transpose()
 
             curr_position, Sigma = self.filter(curr_position, Sigma, z, u, np.matrix(self.pr2.A), np.matrix(self.pr2.B), np.matrix(self.pr2.C), np.matrix(Q), np.matrix(R))
             actual_path[:, i] = np.squeeze(np.array(curr_position))
 
             if i > 4:
-                self.pr2.set_position(curr_position)
+                self.pr2.set_position(curr_position,self.plan[i][2])
                 if env.CheckCollision(self.pr2.robot):
                     print "In collision ", i
-                    in_collision = True
+                    in_collision.append(True)
+                else:
+                    in_collision.append(False)
 
-            self.pr2.set_position(self.path[:, i])
+            # self.pr2.set_position(self.path[:, i])
 
         print "Total Error: %f"%self.calculate_error(self.path, actual_path)
 
         rval = []
-        for pt in actual_path.T:
-            rval.append(np.append(np.squeeze(pt), -np.pi/2))
+        for pt, planned in zip(actual_path.T,self.plan):
+            rval.append(np.append(np.squeeze(pt),planned[2]))
         return self.path.transpose(), rval, in_collision
 
 
@@ -130,18 +133,26 @@ if __name__ == "__main__":
         robot.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
         #### YOUR CODE HERE ####
-        PF = ParticleFilter(1000, [[-4.,4.],[-1.5,4.]],0.1)
-        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
-        sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
+        PF = ParticleFilter(2000, [[-4.,4.],[-1.5,4.]],0.1,"multivariate_normal")
+        sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
+        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
+        start = time.clock()
         ground_truth, actual_path, in_collision = sim.simulate()
-        if in_collision:
+        end = time.clock()
+
+        print "Execution time: ", end-start
+
+        if True in in_collision:
             print "Estimated Path is in Collision."
 
         # PLOTTING
         for pt in ground_truth:
-            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=3.0, colors=(((0,0,1)))))
-        for pt in actual_path:
-            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,0)))))
+            handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=3.0, colors=(((0,0,0)))))
+        for pt,collision in zip(actual_path, in_collision):
+            if collision:
+                handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((1,0,0)))))    
+            else:
+                handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,1)))))
 
         # Now that you have computed a path, convert it to an openrave trajectory 
         traj = ConvertPathToTrajectory(robot, actual_path)
