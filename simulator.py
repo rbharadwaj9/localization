@@ -133,13 +133,13 @@ if __name__ == "__main__":
         robot.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
         #### YOUR CODE HERE ####
-        # PF = ParticleFilter(2000, [[-4.,4.],[-1.5,4.]],0.1,"multivariate_normal")
-        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
+        PF = ParticleFilter(10000, [[-4.,4.],[-1.5,4.]],0.1,"multivariate_normal")
+        sim = Simulator(env, robot, "data/env2_circle_back.pickle", PF.filter)
         
-        PF = ParticleFilter(2000,[[-4.,4.],[-1.5,4.]],0.1,'skewnorm', Q=[-10,0,0.5])
-        sim = Simulator(env, robot, "data/env2_skewnorm.pickle", PF.filter)
+        # PF = ParticleFilter(10000,[[-4.,4.],[-1.5,4.]],0.1,'skewnorm', Q=[-10,0,0.5])
+        # sim = Simulator(env, robot, "data/env2_skewnorm.pickle", PF.filter)
 
-        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
+        # sim = Simulator(env, robot, "data/env2_circle_back.pickle", KalmanFilter)
         start = time.clock()
         ground_truth, actual_path, in_collision = sim.simulate()
         end = time.clock()
