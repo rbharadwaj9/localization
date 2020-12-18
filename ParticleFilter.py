@@ -1,24 +1,41 @@
 #!/usr/bin/env python
 import numpy as np
+from scipy.stats import skewnorm
 
 class ParticleFilter:
-    def __init__(self,N,init_range,random_ratio):
+    def __init__(self,N,init_range,random_ratio,noisetype=None,R=None,Q=None):
         self.X = np.zeros((N,len(init_range)))
         self.W = np.ones(N)/N
         self.N = N
         self.random_ratio = random_ratio
         self.init_range = init_range
+        self.noisetype = noisetype
+
+        if noisetype == 'skewnorm':
+            self.Q = Q
+            s = np.linspace(skewnorm.ppf(0.01, Q[0], Q[1], Q[2]),skewnorm.ppf(0.99, Q[0], Q[1], Q[2]), 100)
+            y = skewnorm.pdf(s, Q[0], Q[1], Q[2])
+            self.sensingNoiseMode = s[np.argmax(y)]
+            print self.sensingNoiseMode
+
         for i,random_range in enumerate(init_range):
             self.X[:,i] = np.random.uniform(random_range[0],random_range[1],N)
     def motion_random(self,R):
         rand = np.random.multivariate_normal([0,0],R)
         return np.reshape(rand,(-1,1))
     def sensing_pdf(self,C,Q,z,x):
-        k = len(z)
-        e = z-np.matmul(C,x)
-        p1 = np.power((2*np.pi),-k/2)*np.power(np.linalg.det(Q),-0.5)
-        p2 = np.exp(-0.5*(e).T*np.linalg.inv(Q)*(e))
-        return float(p1*p2)
+        if self.noisetype == 'multivariate_normal':
+            k = len(z)
+            e = z-np.matmul(C,x)
+            p1 = np.power((2*np.pi),-k/2)*np.power(np.linalg.det(Q),-0.5)
+            p2 = np.exp(-0.5*(e).T*np.linalg.inv(Q)*(e))
+            e_ = e*(np.linalg.norm(e)-0.5)
+            p2_ = np.exp(-0.5*(e_).T*np.linalg.inv(Q)*(e_))
+            return float(p1*p2) + float(p1*p2_)
+
+        if self.noisetype == 'skewnorm':
+            e = z-np.matmul(C,x) + self.sensingNoiseMode
+            return np.linalg.norm(skewnorm.pdf(e, self.Q[0], self.Q[1], self.Q[2]))
     
     def filter(self,mu,Sigma,z,u,A,B,C,Q,R):
         # Initialization
@@ -64,16 +81,16 @@ class ParticleFilter:
         x_max = sum/np.sum(Wt)
         
         # inject randomness
-        w_min = np.median(Wt)
-        indeces = []
-        while len(indeces) < round(self.N*self.random_ratio):
-            n = np.random.randint(0,self.N)
-            if n not in indeces:
-                indeces.append(n)
-                for i,random_range in enumerate(self.init_range):
-                    Xt[n,i] = np.random.uniform(random_range[0],random_range[1],1)
+        # w_min = np.quantile(Wt,0.10)
+        # indeces = []
+        # while len(indeces) < round(self.N*self.random_ratio):
+        #     n = np.random.randint(0,self.N)
+        #     if n not in indeces:
+        #         indeces.append(n)
+        #         for i,random_range in enumerate(self.init_range):
+        #             Xt[n,i] = np.random.uniform(random_range[0],random_range[1],1)
                 
-                Wt[n] = self.sensing_pdf(C,Q,z,np.matrix(Xt[n,:]).T)*w_min
+        #         Wt[n] = self.sensing_pdf(C,Q,z,np.matrix(Xt[n,:]).T)*w_min
 
         cov = np.cov(Xt.transpose())
 
@@ -88,16 +105,16 @@ from tuning import fitting
 from mpl_toolkits.mplot3d import Axes3D
 
 def main():
-    pf = ParticleFilter(1000,[[-4.,4.],[-1.5,4.]],0.1)
-    PIK = "data/env2_hwk3.pickle"
+    pf = ParticleFilter(500,[[-4.,4.],[-1.5,4.]],0.1,'multivariate_normal') #,Q=[-13.63,0.0056,0.517]
+    PIK = "data/env2_hwk3_pose.pickle"
     with open(PIK,"r") as f:
         in_dict = pickle.load(f)
     actions = in_dict["action"].transpose()
     path = in_dict["groundtruth"].transpose()
     noisy_measurement = in_dict["sensor_data"].transpose()
-    A = np.matrix(np.eye(2))
+    A = np.matrix('1 0 ; 0 1')
     B = np.matrix(np.eye(2))
-    C = np.matrix(np.eye(2))
+    C = np.matrix('1 0; 0 1')
     start = np.linalg.inv(C)*np.matrix(noisy_measurement[:, 0]).T
     R,Q = fitting(PIK,A,B,C)
 
@@ -136,7 +153,7 @@ def main():
         estimate_states[:,i] = np.squeeze(np.array(xh))
         plt.pause(0.5)
     
-    state_errors = estimate_states[0:N,:] - path[0:N,:]
+    state_errors = estimate_states[1:N,:] - path[1:N,:]
     total_error=np.sum(np.linalg.norm(state_errors, axis=0))
     print "Total Error: %f"%total_error
     fig.plot(path[0,:],path[1,:],c = 'k')
