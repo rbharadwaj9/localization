@@ -43,13 +43,13 @@ def main():
         robot0.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
         # ******* Printout expected time to run ****** 
-        print "Estimated time to run: [350,400] second"
+        print "Estimated time to run: 10~12 minutes"
         print "Ground truth: black points"
-        print "Particle Filter: blue points"
-        print "Kalman Filter: green points"
+        print "Estimation of Particle Filter: blue points/ red if in-collision"
+        print "Estimation of Kalman Filter: green points/ purple if in-collision"
 
         # ******* PARTICLE FILTER *******
-        PF = ParticleFilter(1000, [[-4.0, 4.0], [-1.5, 4.0]], 0.1, 'multivariate_normal')
+        PF = ParticleFilter(2000, [[-4.0, 4.0], [-1.5, 4.0]], 0.1, 'multivariate_normal')
         pf_sim = Simulator(env, robot0, filename, PF.filter)
         print "****** Particle Filter ******"
 
