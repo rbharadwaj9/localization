@@ -31,7 +31,7 @@ def tuckarms(env,robot):
     waitrobot(robot)
 
 
-def ConvertPathToTrajectory(robot,path=[]):
+def ConvertPathToTrajectory(env, robot,path=[]):
 #Path should be of the form path = [q_1, q_2, q_3,...], where q_i = [x_i, y_i, theta_i]
 
     if not path:
@@ -91,7 +91,7 @@ class Simulator:
 
             if i > 4:
                 self.pr2.set_position(curr_position,self.plan[i][2])
-                if env.CheckCollision(self.pr2.robot):
+                if self.env.CheckCollision(self.pr2.robot):
                     print "In collision ", i
                     in_collision.append(True)
                 else:
