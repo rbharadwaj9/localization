@@ -16,7 +16,6 @@ class ParticleFilter:
             s = np.linspace(skewnorm.ppf(0.01, Q[0], Q[1], Q[2]),skewnorm.ppf(0.99, Q[0], Q[1], Q[2]), 100)
             y = skewnorm.pdf(s, Q[0], Q[1], Q[2])
             self.sensingNoiseMode = s[np.argmax(y)]
-            print self.sensingNoiseMode
 
         for i,random_range in enumerate(init_range):
             self.X[:,i] = np.random.uniform(random_range[0],random_range[1],N)
