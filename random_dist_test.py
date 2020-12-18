@@ -37,7 +37,7 @@ ax.axvline(x=0,color='y',label='mode')
 ax.hist(s,density = True)
 ax.set_xlabel('noise')
 ax.set_ylabel('Number of samples/PDF')
-ax.set_title('Skewnormal histogram, loc = %.1f, w = %.1f, a = %.1f'%(a,loc,w))
+ax.set_title('Skewnormal histogram, shape = %.1f, loc = %.1f, w = %.1f'%(a,loc,w))
 text = 'Shift all noise by mode = %.3f' % mode
 props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 ax.text(0.05, 0.8, text, transform=ax.transAxes, fontsize=12,

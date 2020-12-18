@@ -10,6 +10,7 @@ from pr2 import PR2
 from KalmanFilter import KalmanFilter
 from tuning import fitting
 from ParticleFilter import ParticleFilter
+import matplotlib.pyplot as plt
 
 #### END OF YOUR IMPORTS ####
 
@@ -133,18 +134,25 @@ if __name__ == "__main__":
         robot.SetActiveDOFs([],DOFAffine.X|DOFAffine.Y|DOFAffine.RotationAxis,[0,0,1])
 
         #### YOUR CODE HERE ####
-        PF = ParticleFilter(10000, [[-4.,4.],[-1.5,4.]],0.1,"multivariate_normal")
-        sim = Simulator(env, robot, "data/env2_circle_back.pickle", PF.filter)
+        PF = ParticleFilter(3000, [[-4.,4.],[-1.5,4.]],0.1,"multivariate_normal")
+        sim = Simulator(env, robot, "data/env2_hwk3.pickle", PF.filter)
         
         # PF = ParticleFilter(10000,[[-4.,4.],[-1.5,4.]],0.1,'skewnorm', Q=[-10,0,0.5])
         # sim = Simulator(env, robot, "data/env2_skewnorm.pickle", PF.filter)
 
-        # sim = Simulator(env, robot, "data/env2_circle_back.pickle", KalmanFilter)
+        # sim = Simulator(env, robot, "data/env2_hwk3.pickle", KalmanFilter)
         start = time.clock()
         ground_truth, actual_path, in_collision = sim.simulate()
         end = time.clock()
 
         print "Execution time: ", end-start
+
+        ar = np.array(actual_path)
+        plt.plot(ar[:,0],ar[:,1],label='estimation')
+        gd = np.array(ground_truth)
+        plt.plot(gd[:,0],gd[:,1],label='groundtruth')
+        plt.legend()
+        plt.show()
 
         if True in in_collision:
             print "Estimated Path is in Collision."
@@ -154,7 +162,7 @@ if __name__ == "__main__":
             handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=3.0, colors=(((0,0,0)))))
         for pt,collision in zip(actual_path, in_collision):
             if collision:
-                handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((1,0,0)))))    
+                handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,1)))))    
             else:
                 handles.append(env.plot3(points=(pt[0], pt[1], 0.3), pointsize=5.0, colors=(((0,0,1)))))
 
