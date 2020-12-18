@@ -12,6 +12,7 @@ import numpy as np
 from simulator import Simulator, tuckarms, ConvertPathToTrajectory, waitrobot
 from ParticleFilter import ParticleFilter
 from KalmanFilter import KalmanFilter
+import matplotlib.pyplot as plt
 
 if not __openravepy_build_doc__:
     from openravepy import *
@@ -99,6 +100,23 @@ def main():
                 handles.append(env.plot3(points=(pt[0], pt[1], 0.6), pointsize=5.0, colors=(((0,1,0)))))
 
         kf_traj = ConvertPathToTrajectory(env, robot0, kf_actual_path)
+
+        # Plotting by matplotlib
+        plt.ion()
+        ax = plt.subplot(111)
+        
+        gt_points = np.array(pf_ground_truth)
+        pf_points = np.array(pf_actual_path)
+        kf_points = np.array(kf_actual_path)
+
+        ax.plot(gt_points[:,0],gt_points[:,1],c='k',label='Ground truth')
+        ax.plot(pf_points[:,0],pf_points[:,1],c='b',label='Estimation PF')
+        ax.plot(kf_points[:,0],kf_points[:,1],c='g',label='Estimation KF')
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_title('Estimations of KF and PF with ground truth')
+        ax.legend()
+        plt.pause(0.01)
 
 
     raw_input("Press to play particle path")
