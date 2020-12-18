@@ -100,7 +100,7 @@ def main():
         print "Estimation of Kalman Filter: green points/ purple if in-collision"
 
         # ******* PARTICLE FILTER *******
-        PF = ParticleFilter(500, [[-4.0, 4.0], [-1.5, 4.0]], 0.1, 'multivariate_normal')
+        PF = ParticleFilter(2000, [[-4.0, 4.0], [-1.5, 4.0]], 0.1, 'multivariate_normal')
         pf_sim = Simulator(env, robot0, filename, PF.filter)
         print "****** Particle Filter ******"
 
