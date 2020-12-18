@@ -93,7 +93,7 @@ class Simulator:
             if i > 4:
                 self.pr2.set_position(curr_position,self.plan[i][2])
                 if self.env.CheckCollision(self.pr2.robot):
-                    print "In collision ", i
+                    # print "In collision ", i
                     in_collision.append(True)
                 else:
                     in_collision.append(False)
