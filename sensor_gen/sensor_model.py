@@ -31,8 +31,8 @@ class sensor_gen:
 
     # define sensor noise
     def noise_model(self,outlier_rate = 0.05, outlier_range = 2):
-        # val = np.random.multivariate_normal([0,0],[[ 2e-2, 9.99e-3 ],[9.99e-3, 1e-2]]) # distribution
-        val = skewnorm.rvs(-10.,0.,0.5,2) + 0.12222620633749148
+        val = np.random.multivariate_normal([0,0],[[ 1e-2, -9.99e-3 ],[-9.99e-3, 1e-2]]) # distribution
+        # val = skewnorm.rvs(-10.,0.,0.5,2) + 0.12222620633749148
         val = np.reshape(val,(2,1))
         # Outlier
         # if np.random.rand(1) < outlier_rate:
