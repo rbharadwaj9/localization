@@ -81,7 +81,7 @@ class Simulator:
         z0 = np.matrix(self.noisy_measurement[:,0]).T
         actual_path[:,0] = np.squeeze(np.array(np.linalg.inv(self.pr2.C) * z0))
 
-        in_collision = []
+        in_collision = [False, False, False, False, False]
 
         for i in range(1,self.N):
             z = np.matrix(self.noisy_measurement[:,i]).transpose() # self.pr2.gps_measurement() # 
@@ -93,7 +93,6 @@ class Simulator:
             if i > 4:
                 self.pr2.set_position(curr_position,self.plan[i][2])
                 if self.env.CheckCollision(self.pr2.robot):
-                    print "In collision ", i
                     in_collision.append(True)
                 else:
                     in_collision.append(False)
