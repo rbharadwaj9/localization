@@ -21,10 +21,10 @@ class PR2:
     def gps_measurement(self):
         return self.sensor.gen_noisy(np.matrix(self.get_true_location()))
 
-    def set_position(self, coordinates):
+    def set_position(self, coordinates, pose):
         # coodinates must be a 1D array of size 2
         coordinates = list(coordinates)
-        coordinates.append(0.05)
+        coordinates.append(pose)
         try:
             self.robot.SetActiveDOFValues(np.array(coordinates))
         except TypeError:
